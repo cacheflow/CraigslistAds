@@ -4,18 +4,18 @@ require "csv"
 
 agent = Mechanize.new 
 
-page = agent.get("http://atlanta.craigslist.org/search/sss?sort=rel&query=pinatas")
+page = agent.get("http://atlanta.craigslist.org/search/jjj?sort=rel&query=horses")
 
 # This stands for Craigslist links 
 search_results = []
-
+                      
 
 	page.links.each do |links| 
 		attributes = links.attributes.attributes["class"]
 		search_results << links if attributes && attributes.value == "hdrlnk"
 	end 
-
-	CSV.open("craigslistPinataAdsATL.csv", "wb") do |csv| 
+                                              
+	CSV.open("craigslistHorsesJobs.csv", "wb") do |csv| 
 		search_results.each do |searches| 
 			click = searches.click 
 			doc  = click.parser
@@ -26,5 +26,5 @@ search_results = []
 				csv << [parse.text].collect(&:strip) 
 			end 	
 	end 
-	puts "I'm done."
+	puts "I'm done"
 	end                                                                                         
