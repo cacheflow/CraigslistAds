@@ -1,1 +1,6 @@
 Notes I stopped at row @ servicios para lanchas
+
+1. Create individual scrapers for each given category. 
+2. After form submits scrape all the things and then go to the next page and scrape those two if it exists. 
+3. Wrap those scrapers with methods that can have searches passed to them. 
+4. Call each method and search each category for that keyword. 
