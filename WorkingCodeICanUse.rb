@@ -4,6 +4,8 @@ require "csv"
 class Miami 
 
 	def sale_scraper(query) 
+		CSV.open("resultsForSale#{query}.csv", "w+", :write_headers => true, :headers => ["Title", "Body"]) do |csv| 
+
 		agent = Mechanize.new 
 		page = agent.get("http://chicago.craigslist.org")
 		form = page.form_with(:action => "/search/")	
