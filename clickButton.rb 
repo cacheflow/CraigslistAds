@@ -4,28 +4,36 @@ require "csv"
 class Colorado 
 
 	def forSale(query)
-		options = {:write_headers => true, :headers => ["Title", "Body"] }
+		options = {:write_headers => true, :headers => ["Title", "Body"]}
 		agent = Mechanize.new 
 		page = agent.get("http://denver.craigslist.org")
 		page_form = page.form_with(:action => "/search/")
 		form = page_form.field_with(:value => "").value = query 
 			submit_form = agent.submit(page_form)
 			ads = submit_form.links_with(:class => "hdrlnk") 
-			title_header = ["Title", "Body"]
-			CSV.open("resultsForSale#{query}.csv", "w+", options) do |csv|	
-				ads.each do |ad|
+			CSV.open("resultsForSale#{query}.csv", "w+", :headers => true ) do |csv|	
+					ads.each do |ad|
 					clicked_page = ad.click 
 					get_page = agent.get(clicked_page)
-					get_page.search("section.body").each do |title|
-						post_body = title.search("h2.postingtitle")
-						post_title = title.search("section#postingbody")
-						csv << [post_title.text].collect(&:strip) 
-						csv.header("Title") << [post_body.text].collect(&:strip)
+					get_page.search("section.body").each do |item|
+						post_body = item.search("h2.postingtitle")
+						post_title = item.search("section#postingbody")
+						# csv.headers  << [post_title.text].collect(&:strip)
+						# csv.headers << [post_body.text].collect(&:strip)
+						# title_header = header.headers[0] = "Title"
+						# body_header = header.headers[1] = "Body"
+						 csv.headers[0] << ["Title", post_title.text].collect(&:strip)
+						csv.headers[1] << ["Body", post_body.text].collect(&:strip)
+						
+						puts csv
 					end 
-				end  
+				 
+				end
+			end
+				  
 			end 
 
-	end 
+	 
 
 end  
 
