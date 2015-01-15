@@ -1,0 +1,36 @@
+require "mechanize"
+require "csv"
+
+class Colorado
+
+  def forSale(city, query)
+    another_page = true
+    while another_page
+    agent = Mechanize.new
+    page = agent.get("http://#{city}.craigslist.org")
+    next_button_disabled = page.links_with(:class => "button next")
+    next_button_disabled.each do |button|
+      disabled_button = agent.get(button)
+    if !next_button_disabled.click
+        puts "I can't run anymore"
+        another_page = false
+    else
+      CSV.open("resutlsForSale#{query}Page#{page_num}") do
+          next_button_disabled.each do |button_links|
+          current_links = agent.get(button_links.uri)
+          current_links.search("section.body").each do |item|
+          post_body = item.search("h2.postingtitle")
+          post_title = item.search("section#postingbody")
+          csv << ["Title", post_title.text].collect(&:strip)
+          csv << ["Body", post_body.text].collect(&:strip)
+        end
+        end
+      end
+    end
+    end
+    end
+  end
+end
+
+  colorado = Colorado.new
+  colorado.forSale("sandiego", "sandals")

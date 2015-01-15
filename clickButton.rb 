@@ -1,87 +1,134 @@
 require "mechanize"
 require "csv"
 
-class Colorado 
+class Colorado
 
-	def forSale(query)
+	def forSale(city,query)
 		options = {:write_headers => true, :headers => ["Title", "Body"]}
-		agent = Mechanize.new 
-		page = agent.get("http://denver.craigslist.org")
+		agent = Mechanize.new
+		page = agent.get("http://#{city}.craigslist.org")
 		page_form = page.form_with(:action => "/search/")
-		form = page_form.field_with(:value => "").value = query 
-			submit_form = agent.submit(page_form)
-			ads = submit_form.links_with(:class => "hdrlnk") 
-			CSV.open("resultsForSale#{query}.csv", "w+", :headers => true ) do |csv|	
-					ads.each do |ad|
-					clicked_page = ad.click 
-					get_page = agent.get(clicked_page)
-					get_page.search("section.body").each do |item|
+		form = page_form.field_with(:value => "").value = query
+		submit_form = agent.submit(page_form)
+		ads = submit_form.links_with(:class => "hdrlnk")
+		CSV.open("resultsForSale#{query.capitalize}.csv", "w+", :headers => true ) do |csv|
+			ads.each do |ad|
+				clicked_page = ad.click
+				get_page = agent.get(clicked_page)
+				get_page.search("section.body").each do |item|
+					post_body = item.search("h2.postingtitle")
+					post_title = item.search("section#postingbody")
+					csv << ["Title", post_title.text].collect(&:strip)
+					csv << ["Body", post_body.text].collect(&:strip)
+
+				end
+				next_page = page.links_with(:class => "button next")
+				next_page.each do |next_link|
+					click_next_page = next_link.uri
+					next_page_ads = agent.get(click_next_page)
+					next_page_ads.search("section.body").each do |item|
 						post_body = item.search("h2.postingtitle")
 						post_title = item.search("section#postingbody")
-						# csv.headers  << [post_title.text].collect(&:strip)
-						# csv.headers << [post_body.text].collect(&:strip)
-						# title_header = header.headers[0] = "Title"
-						# body_header = header.headers[1] = "Body"
-						 csv.headers[0] << ["Title", post_title.text].collect(&:strip)
-						csv.headers[1] << ["Body", post_body.text].collect(&:strip)
-						
-						puts csv
-					end 
-				 
+						csv << ["Title", post_title.text].collect(&:strip)
+						csv << ["Body", post_body.text].collect(&:strip)
+					end
+
+
+
 				end
+				puts "I'm done scraping #{query} in the for sale category"
 			end
-				  
-			end 
 
-	 
+			next_button_disabled = page.links_with(:class => "button next")
+			if !next_button_disabled.click
+				puts "I can't run anymore"
+			else
+				CSV.open("resutlsForSale#{query}Page#{page_num}")
+				next_button_disabled.each do |button_links|
+					current_links = agent.get(button_links.uri)
+					current_links.search("section.body").each do |item|
+						post_body = item.search("h2.postingtitle")
+						post_title = item.search("section#postingbody")
+						csv << ["Title", post_title.text].collect(&:strip)
+						csv << ["Body", post_body.text].collect(&:strip)
+					end
+					end
+					page_num += 1
 
-end  
+				end
 
-colorado = Colorado.new 
-colorado.forSale("weed")
+				def community(city, check)
+					options = {:write_headers => true, :headers => ["Title", "Body"]}
+					agent = Mechanize.new
+					page = agent.get("http://#{city}.craigslist.org")
+					page_form = page.form_with(:action => "/search/")
+					form = page_form.field_with(:value => "").value = check
+					form = page_form.field_with(:value => "sss").value = "ccc"
+					submit_form = agent.submit(page_form)
+					ads = submit_form.links_with(:class => "hdrlnk")
+					CSV.open("resultsCommunity#{check}.csv", "w+", :headers => true ) do |csv|
+						ads.each do |ad|
+							clicked_page = ad.click
+							get_page = agent.get(clicked_page)
+							get_page.search("section.body").each do |item|
+								post_body = item.search("h2.postingtitle")
+								post_title = item.search("section#postingbody")
+								csv << ["Title", post_title.text].collect(&:strip)
+								csv << ["Body", post_body.text].collect(&:strip)
 
-# ad_body = agent.get(ads).css("#postingbody").each {|body| puts body.text}
+							end
 
- 
+						end
+					end
+				end
 
+				page_num += 1
+				puts "I'm done scraping #{check} in the community category"
+				
+			end
 
-# next_page_link = page.links_with(:class => "button next")
-# 	 next_page_link.each do |link|
-# 	 	click_link = link.click 
-# 	 	next_page = agent.get(click_link).links_with(:class => "hdrlnk")
-# 	 	second << next_page
-# 	 end 
+			colorado = Colorado.new
+			colorado.forSale("alabama","tables")
+			colorado.community("alabama", "tables")
 
-
-# another_page = true 
-
-# while another_page
-# page.links.each do |link| 
-	
-# 	link_class = link.attributes.attributes["class"]  
-# 	second << link if link_class && link_class.value == "button next"
-	
-# 	second.each do |sec_link| 
-# 		click_link = sec_link.click 
-# 		get_next_page = agent.get(click_link)
-# 		click_me << click_link
-# 		get_links = get_next_page.links 
-# 		third << get_links
-# 	end 
-	# next_page_link = page.link_with(:class => "button next")
-	# if !click_me.click
-	# 	another_page = false 
-	# else
-	# 	keep_going = agent.get(click_link)
-	# end   
- 
-
-# end  
+			# ad_body = agent.get(ads).css("#postingbody").each {|body| puts body.text}
 
 
 
 
+			# next_page_link = page.links_with(:class => "button next")
+			# 	 next_page_link.each do |link|
+			# 	 	click_link = link.click
+			# 	 	next_page = agent.get(click_link).links_with(:class => "hdrlnk")
+			# 	 	second << next_page
+			# 	 end
 
 
+			# another_page = true
 
- 
+			# while another_page
+			# page.links.each do |link|
+
+			# 	link_class = link.attributes.attributes["class"]
+			# 	second << link if link_class && link_class.value == "button next"
+
+			# 	second.each do |sec_link|
+			# 		click_link = sec_link.click
+			# 		get_next_page = agent.get(click_link)
+			# 		click_me << click_link
+			# 		get_links = get_next_page.links
+			# 		third << get_links
+			# 	end
+			# next_page_link = page.link_with(:class => "button next")
+			# if !click_me.click
+			# 	another_page = false
+			# else
+			# 	keep_going = agent.get(click_link)
+			# end
+
+		end
+	end
+
+	colorado = Colorado.new
+	colorado.forSale("austin", "carpet")
+		# end
